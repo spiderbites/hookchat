@@ -2,6 +2,7 @@ import React from 'react'
 import Message from './Message'
 import styled from 'styled-components'
 import throttle from 'lodash/throttle'
+import { UsersContext } from './users-context'
 
 const MSG_HEIGHT = 120
 
@@ -89,9 +90,18 @@ class Messages extends React.Component {
     return (
       <MessageList ref={this.listRef} onScroll={this.handleScroll}>
         {this.props.loading && <div>Loading...</div>}
-        {this.props.data.map((msg, i) => (
-          <Message key={i} {...msg} />
-        ))}
+        <UsersContext.Consumer>
+          {users => {
+            return this.props.data.map((msg, i) => (
+              <Message
+                key={i}
+                avatar={users[msg.userId].avatar}
+                username={users[msg.userId].username}
+                {...msg}
+              />
+            ))
+          }}
+        </UsersContext.Consumer>
       </MessageList>
     )
   }

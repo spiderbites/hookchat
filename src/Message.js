@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-import { UsersContext } from './users-context'
 import Avatar from './Avatar'
 
 const Username = styled.span`
@@ -20,22 +19,16 @@ const Content = styled.div`
   margin-left: 15px;
 `
 
-const Message = ({ time, userId, text }) => {
+const Message = ({ time, userId, text, avatar, username }) => {
   return (
-    <UsersContext.Consumer>
-      {users => {
-        return (
-          <Container>
-            <Avatar src={users[userId].avatar} />
-            <Content>
-              <Username>{users[userId].username}</Username>
-              <Date>{time.toString()}</Date>
-              <div>{text}</div>
-            </Content>
-          </Container>
-        )
-      }}
-    </UsersContext.Consumer>
+    <Container>
+      <Avatar src={avatar} />
+      <Content>
+        <Username>{username}</Username>
+        <Date>{time.toString()}</Date>
+        <div>{text}</div>
+      </Content>
+    </Container>
   )
 }
 
