@@ -2,19 +2,18 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
-import { messages, users, generateMessage, currentUser } from './data'
-import keyBy from 'lodash/keyBy'
+import { messages, generateMessage, currentUser } from './data'
 
 const Container = styled.div`
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 1000px;
+  width: 80%;
 `
 
 class App extends Component {
-  state = { messages: [], users: [], loadingMore: false, earliest: null }
+  state = { messages: [], loadingMore: false, earliest: null }
 
   async componentDidMount () {
     this.loadMore()
@@ -25,10 +24,6 @@ class App extends Component {
     this.setState(prevState => ({
       messages: prevState.messages.concat(generateMessage({ fresh: true }))
     }))
-  }
-
-  initData = () => {
-    this.setState({ users: keyBy(users, 'id') })
   }
 
   getMessages = (before, count) => {
@@ -70,9 +65,10 @@ class App extends Component {
   render () {
     return (
       <Container>
+        <div>Num messages: {this.state.messages.length}</div>
         <Messages
           data={this.state.messages}
-          onScrollTop={this.loadMore}
+          loadMore={this.loadMore}
           loading={this.state.loadingMore}
         />
         <Compose onMessage={this.handleCompose} />

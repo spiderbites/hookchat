@@ -3,6 +3,8 @@ import Message from './Message'
 import styled from 'styled-components'
 import throttle from 'lodash/throttle'
 
+const MSG_HEIGHT = 120
+
 const MessageList = styled.div`
   background-color: palegoldenrod;
   overflow-y: auto;
@@ -14,52 +16,78 @@ const MessageList = styled.div`
 class Messages extends React.Component {
   listRef = React.createRef()
 
-  state = {
-    atTop: true
-  }
-
   componentDidMount () {
-    this.listRef.current.scrollTop = this.listRef.current.scrollHeight
+    this.scrollToBottom()
   }
 
-  checkWheel = e => {
-    if (
-      e.deltaY < 0 &&
-      this.listRef.current.scrollTop === 0 &&
-      !this.props.loading
-    ) {
-      this.props.onScrollTop()
+  scrollToBottom = () => {
+    const list = this.listRef.current
+    list.scrollTop = list.scrollHeight
+  }
+
+  isFullyScrolled = () => {
+    const list = this.listRef.current
+    return list.scrollHeight - list.scrollTop === list.clientHeight
+  }
+
+  checkScroll = e => {
+    if (e.target.scrollTop < 50 && !this.props.loading) {
+      this.props.loadMore()
     }
   }
 
-  delayedCallback = throttle(this.checkWheel, 1500, { trailing: false })
+  delayedCallbackScroll = throttle(this.checkScroll, 500)
 
-  handleWheel = e => {
+  handleScroll = e => {
     e.persist()
-    this.delayedCallback(e)
+    this.delayedCallbackScroll(e)
   }
 
   getSnapshotBeforeUpdate (prevProps, prevState) {
-    const list = this.listRef.current
-    console.log(list.scrollHeight - list.scrollTop, list.clientHeight)
-    if (
-      prevProps.data.length < this.props.data.length &&
-      list.scrollHeight - list.scrollTop === list.clientHeight
-    ) {
-      return true
+    // Scroll to the bottom initially
+    if (prevProps.data.length === 0 && this.props.data.length) {
+      return { bottom: true }
+    }
+
+    if (prevProps.data.length < this.props.data.length) {
+      // If at the bottom, stay there
+      if (this.isFullyScrolled()) {
+        return { bottom: true }
+      }
+
+      const list = this.listRef.current
+
+      // If the message is being added to the bottom, account for
+      // message height when changing scroll position
+      if (
+        prevProps.data[prevProps.data.length - 1] !==
+        this.props.data[this.props.data.length - 1]
+      ) {
+        return {
+          bottom: false,
+          to: list.scrollHeight - list.scrollTop + MSG_HEIGHT
+        }
+      } else {
+        return { bottom: false, to: list.scrollHeight - list.scrollTop }
+      }
     }
     return null
   }
 
   componentDidUpdate (prevProps, prevState, snapshot) {
-    if (prevProps.data.length === 0 || snapshot !== null) {
-      this.listRef.current.scrollTop = this.listRef.current.scrollHeight
+    if (snapshot !== null) {
+      if (snapshot.bottom) {
+        this.scrollToBottom()
+      } else {
+        const list = this.listRef.current
+        list.scrollTop = list.scrollHeight - snapshot.to
+      }
     }
   }
 
   render () {
     return (
-      <MessageList ref={this.listRef} onWheel={this.handleWheel}>
+      <MessageList ref={this.listRef} onScroll={this.handleScroll}>
         {this.props.loading && <div>Loading...</div>}
         {this.props.data.map((msg, i) => (
           <Message key={i} {...msg} />
