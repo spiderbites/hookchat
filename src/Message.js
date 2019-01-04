@@ -32,4 +32,4 @@ const Message = ({ time, userId, text, avatar, username }) => {
   )
 }
 
-export default Message
+export default React.memo(Message)
