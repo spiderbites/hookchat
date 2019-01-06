@@ -2,7 +2,8 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
-import { messages, generateMessage, currentUser } from './data'
+import ApiContext from './ApiContext.js'
+import keyBy from 'lodash/keyBy'
 
 const Container = styled.div`
   position: absolute;
@@ -13,43 +14,54 @@ const Container = styled.div`
 `
 
 class App extends Component {
-  state = { messages: [], loadingMore: false, earliest: null }
+  state = {
+    messages: [],
+    earliest: Date.now(),
+    loading: false,
+    usersById: {},
+    currentUser: {}
+  }
 
   async componentDidMount () {
-    this.loadMore()
+    await this.getUsers()
+    await this.getCurrentUser()
+    await this.getMessages()
     setInterval(this.getNewMessage, 5000)
   }
 
-  getNewMessage = () => {
+  getUsers = async () => {
+    const response = await fetch(`${this.context.api}/users`)
+    const users = await response.json()
+    this.setState({ users: keyBy(users, 'id') })
+  }
+
+  getCurrentUser = async () => {
+    const response = await fetch(`${this.context.api}/me`)
+    const currentUser = await response.json()
+    this.setState({ currentUser })
+  }
+
+  getMessages = async () => {
+    this.setState({ loading: true })
+    const response = await fetch(
+      `${this.context.api}/messages?before=${this.state.earliest}&count=10`
+    )
+    const olderMessages = await response.json()
     this.setState(prevState => ({
-      messages: prevState.messages.concat(generateMessage({ fresh: true }))
+      messages: olderMessages.concat(prevState.messages),
+      loading: false,
+      earliest: olderMessages.length
+        ? Date.parse(olderMessages[0].time)
+        : prevState.earliest
     }))
   }
 
-  getMessages = (before, count) => {
-    return new Promise(function (resolve, reject) {
-      setTimeout(function () {
-        const filtered = messages.filter(d => d.time < before)
-        const sliced = filtered.slice(filtered.length - count, filtered.length)
-        resolve(sliced)
-      }, 500)
-    })
-  }
-
-  loadMore = async () => {
-    this.setState({ loadingMore: true })
-    const messages = await this.getMessages(
-      this.state.earliest || Date.now(),
-      10
-    )
-    this.setState(prevState => {
-      const newMessages = messages.concat(prevState.messages)
-      return {
-        loadingMore: false,
-        messages: newMessages,
-        earliest: newMessages[0].time
-      }
-    })
+  getNewMessage = async () => {
+    const response = await fetch(`${this.context.api}/new-message`)
+    const json = await response.json()
+    this.setState(prevState => ({
+      messages: prevState.messages.concat(json)
+    }))
   }
 
   handleCompose = text => {
@@ -57,24 +69,28 @@ class App extends Component {
       messages: prevState.messages.concat({
         time: new Date(),
         text,
-        userId: currentUser.id
+        userId: this.state.currentUser.id
       })
     }))
   }
 
   render () {
+    const { messages, loading, users } = this.state
     return (
       <Container>
-        <div>Num messages: {this.state.messages.length}</div>
+        <div>Message Count: {this.state.messages.length}</div>
         <Messages
-          data={this.state.messages}
-          loadMore={this.loadMore}
-          loading={this.state.loadingMore}
+          users={users}
+          data={messages}
+          loadMore={this.getMessages}
+          loading={loading}
         />
         <Compose onMessage={this.handleCompose} />
       </Container>
     )
   }
 }
+
+App.contextType = ApiContext
 
 export default App
