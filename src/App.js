@@ -14,6 +14,8 @@ const Container = styled.div`
 `
 
 class App extends Component {
+  static contextType = ApiContext
+
   state = {
     messages: [],
     earliest: Date.now(),
@@ -90,7 +92,5 @@ class App extends Component {
     )
   }
 }
-
-App.contextType = ApiContext
 
 export default App

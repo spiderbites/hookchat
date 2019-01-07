@@ -1,7 +1,7 @@
 import React from 'react'
-import Message from './Message'
 import styled from 'styled-components'
 import throttle from 'lodash/throttle'
+import Message from './Message'
 
 const MSG_HEIGHT = 120
 
