@@ -15,6 +15,7 @@ const Container = styled.div`
 
 class App extends Component {
   static contextType = ApiContext
+  interval = null
 
   state = {
     messages: [],
@@ -25,25 +26,29 @@ class App extends Component {
   }
 
   async componentDidMount () {
-    await this.getUsers()
-    await this.getCurrentUser()
-    await this.getMessages()
-    setInterval(this.getNewMessage, 5000)
+    await this.fetchUsers()
+    await this.fetchCurrentUser()
+    await this.fetchMessages()
+    this.interval = setInterval(this.fetchNewMessage, 5000)
   }
 
-  getUsers = async () => {
+  componentWillUnmount () {
+    clearInterval(this.interval)
+  }
+
+  fetchUsers = async () => {
     const response = await fetch(`${this.context.api}/users`)
     const users = await response.json()
     this.setState({ users: keyBy(users, 'id') })
   }
 
-  getCurrentUser = async () => {
+  fetchCurrentUser = async () => {
     const response = await fetch(`${this.context.api}/me`)
     const currentUser = await response.json()
     this.setState({ currentUser })
   }
 
-  getMessages = async () => {
+  fetchMessages = async () => {
     this.setState({ loading: true })
     const response = await fetch(
       `${this.context.api}/messages?before=${this.state.earliest}&count=10`
@@ -58,11 +63,11 @@ class App extends Component {
     }))
   }
 
-  getNewMessage = async () => {
+  fetchNewMessage = async () => {
     const response = await fetch(`${this.context.api}/new-message`)
-    const json = await response.json()
+    const newMessage = await response.json()
     this.setState(prevState => ({
-      messages: prevState.messages.concat(json)
+      messages: prevState.messages.concat(newMessage)
     }))
   }
 
@@ -84,7 +89,7 @@ class App extends Component {
         <Messages
           users={users}
           data={messages}
-          loadMore={this.getMessages}
+          loadMore={this.fetchMessages}
           loading={loading}
         />
         <Compose onMessage={this.handleCompose} />
