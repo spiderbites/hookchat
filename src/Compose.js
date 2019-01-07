@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 
 const StyledInput = styled.input`
@@ -10,31 +10,22 @@ const StyledInput = styled.input`
   box-sizing: border-box;
 `
 
-class Compose extends Component {
-  state = {
-    text: ''
-  }
-
-  onChange = e => {
-    this.setState({ text: e.target.value })
-  }
-
-  onKeyPress = e => {
+function Compose (props) {
+  const [text, setText] = useState('')
+  const onKeyPress = e => {
     if (e.key === 'Enter') {
-      this.props.onMessage(e.target.value)
-      this.setState({ text: '' })
+      props.onMessage(e.target.value)
+      setText('')
     }
   }
 
-  render () {
-    return (
-      <StyledInput
-        value={this.state.text}
-        onChange={this.onChange}
-        onKeyPress={this.onKeyPress}
-      />
-    )
-  }
+  return (
+    <StyledInput
+      value={text}
+      onChange={e => setText(e.target.value)}
+      onKeyPress={onKeyPress}
+    />
+  )
 }
 
 export default Compose
