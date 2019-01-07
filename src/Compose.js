@@ -7,6 +7,7 @@ const StyledInput = styled.input`
   border-radius: 4px;
   border: 2px solid gray;
   font-size: 16px;
+  box-sizing: border-box;
 `
 
 class Compose extends Component {
