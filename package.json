@@ -16,10 +16,17 @@
     "styled-components": "^4.1.2"
   },
   "devDependencies": {
+    "eslint-plugin-react-hooks": "^0.0.0",
     "faker": "^4.1.0"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": "react-app",
+    "plugins": [
+      "react-hooks"
+    ],
+    "rules": {
+      "react-hooks/rules-of-hooks": "error"
+    }
   },
   "browserslist": [
     ">0.2%",

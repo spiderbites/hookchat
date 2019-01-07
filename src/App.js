@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import Messages from './Messages'
+import Messages from './MessagesHooks'
 import Compose from './Compose'
 import ApiContext from './ApiContext.js'
 import keyBy from 'lodash/keyBy'
