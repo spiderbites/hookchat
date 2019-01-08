@@ -36,11 +36,9 @@ class Messages extends React.Component {
     }
   }
 
-  delayedCallbackScroll = throttle(this.checkScroll, 500)
-
   handleScroll = e => {
     e.persist()
-    this.delayedCallbackScroll(e)
+    throttle(this.checkScroll, 500)(e)
   }
 
   getSnapshotBeforeUpdate (prevProps, prevState) {
