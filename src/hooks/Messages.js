@@ -1,17 +1,31 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import styled from 'styled-components'
 import throttle from 'lodash/throttle'
-import Message from './Message'
+import Message from '../components/Message'
+
+import { UserContext } from './UserContext'
 
 const MSG_HEIGHT = 120
 
-const MessageList = styled.div`
+const MessageContainer = styled.div`
   background-color: palegoldenrod;
   overflow-y: auto;
   margin: 0px auto;
   height: 600px;
   padding: 20px;
 `
+
+function MessageList (props) {
+  const usersContext = useContext(UserContext)
+  return props.data.map((msg, i) => (
+    <Message
+      key={i}
+      avatar={usersContext.usersById[msg.userId].avatar}
+      username={usersContext.usersById[msg.userId].username}
+      {...msg}
+    />
+  ))
+}
 
 class Messages extends React.Component {
   listRef = React.createRef()
@@ -84,19 +98,12 @@ class Messages extends React.Component {
   }
 
   render () {
-    const { users, data, loading } = this.props
+    const { data, loading } = this.props
     return (
-      <MessageList ref={this.listRef} onScroll={this.handleScroll}>
+      <MessageContainer ref={this.listRef} onScroll={this.handleScroll}>
         {loading && <div>Loading...</div>}
-        {data.map((msg, i) => (
-          <Message
-            key={i}
-            avatar={users[msg.userId].avatar}
-            username={users[msg.userId].username}
-            {...msg}
-          />
-        ))}
-      </MessageList>
+        <MessageList data={data} />
+      </MessageContainer>
     )
   }
 }

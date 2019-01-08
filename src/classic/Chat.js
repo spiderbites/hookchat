@@ -2,8 +2,10 @@ import React, { Component } from 'react'
 import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
-import ApiContext from './ApiContext.js'
-import keyBy from 'lodash/keyBy'
+import { UserContext } from './UserContext'
+
+const API = process.env.REACT_APP_API
+const MESSAGE_FETCH_INTERVAL = 2000
 
 const Container = styled.div`
   position: absolute;
@@ -14,45 +16,28 @@ const Container = styled.div`
 `
 
 class App extends Component {
-  static contextType = ApiContext
   interval = null
 
   state = {
     messages: [],
     earliest: Date.now(),
     loading: false,
-    usersById: {},
-    currentUser: {},
     noisy: true
   }
 
   async componentDidMount () {
-    await this.fetchUsers()
-    await this.fetchCurrentUser()
     await this.fetchMessages()
-    this.interval = setInterval(this.fetchNewMessage, 2000)
+    this.interval = setInterval(this.fetchNewMessage, MESSAGE_FETCH_INTERVAL)
   }
 
   componentWillUnmount () {
     clearInterval(this.interval)
   }
 
-  fetchUsers = async () => {
-    const response = await fetch(`${this.context.api}/users`)
-    const users = await response.json()
-    this.setState({ users: keyBy(users, 'id') })
-  }
-
-  fetchCurrentUser = async () => {
-    const response = await fetch(`${this.context.api}/me`)
-    const currentUser = await response.json()
-    this.setState({ currentUser })
-  }
-
   fetchMessages = async () => {
     this.setState({ loading: true })
     const response = await fetch(
-      `${this.context.api}/messages?before=${this.state.earliest}&count=10`
+      `${API}/messages?before=${this.state.earliest}&count=10`
     )
     const olderMessages = await response.json()
     this.setState(prevState => ({
@@ -68,7 +53,7 @@ class App extends Component {
     if (!this.state.noisy) {
       return
     }
-    const response = await fetch(`${this.context.api}/new-message`)
+    const response = await fetch(`${API}/new-message`)
     const newMessage = await response.json()
     this.setState(prevState => ({
       messages: prevState.messages.concat(newMessage)
@@ -79,31 +64,36 @@ class App extends Component {
     this.setState({ noisy: !this.state.noisy })
   }
 
-  handleCompose = text => {
+  handleCompose = (text, userId) => {
     this.setState(prevState => ({
       messages: prevState.messages.concat({
         time: new Date(),
         text,
-        userId: this.state.currentUser.id
+        userId
       })
     }))
   }
 
   render () {
-    const { messages, loading, users } = this.state
+    const { messages, loading } = this.state
     return (
       <Container>
         <div>Message Count: {this.state.messages.length}</div>
         <button onClick={this.toggleNoise}>
-          {this.state.noisy ? 'Please stop' : 'Ok go'}
+          {this.state.noisy ? 'Silence!' : 'Ok go'}
         </button>
         <Messages
-          users={users}
           data={messages}
           loadMore={this.fetchMessages}
           loading={loading}
         />
-        <Compose onMessage={this.handleCompose} />
+        <UserContext.Consumer>
+          {({ currentUser }) => (
+            <Compose
+              onMessage={text => this.handleCompose(text, currentUser.id)}
+            />
+          )}
+        </UserContext.Consumer>
       </Container>
     )
   }

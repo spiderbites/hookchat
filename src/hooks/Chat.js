@@ -1,9 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
-import ApiContext from './ApiContext.js'
-import keyBy from 'lodash/keyBy'
+import { UserContext } from './UserContext'
+
+const API = process.env.REACT_APP_API
+const MESSAGE_FETCH_INTERVAL = 2000
 
 const Container = styled.div`
   position: absolute;
@@ -13,30 +15,16 @@ const Container = styled.div`
   width: 80%;
 `
 
-function App (props) {
-  const { api } = useContext(ApiContext)
-  const [usersById, setUsersById] = useState({})
-  const [currentUser, setCurrentUser] = useState({})
+function Chat (props) {
+  const usersContext = useContext(UserContext)
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState([])
   const [earliest, setEarliest] = useState(Date.now())
   const [noisy, toggleNoise] = useState(true)
 
-  const fetchUsers = async () => {
-    const response = await fetch(`${api}/users`)
-    const users = await response.json()
-    setUsersById(keyBy(users, 'id'))
-  }
-
-  const fetchCurrentUser = async () => {
-    const response = await fetch(`${api}/me`)
-    const currentUser = await response.json()
-    setCurrentUser(currentUser)
-  }
-
   const fetchMessages = async () => {
     setLoading(true)
-    const response = await fetch(`${api}/messages?before=${earliest}&count=10`)
+    const response = await fetch(`${API}/messages?before=${earliest}&count=10`)
     const olderMessages = await response.json()
     setMessages(olderMessages.concat(messages))
     setLoading(false)
@@ -50,25 +38,23 @@ function App (props) {
       messages.concat({
         time: new Date(),
         text,
-        userId: currentUser.id
+        userId: usersContext.currentUser.id
       })
     )
   }
 
   useEffect(() => {
-    fetchUsers()
-      .then(fetchCurrentUser)
-      .then(fetchMessages)
+    fetchMessages()
   }, [])
 
   useEffect(
     () => {
       if (noisy) {
         const timeout = setTimeout(async () => {
-          const response = await fetch(`${api}/new-message`)
+          const response = await fetch(`${API}/new-message`)
           const newMessage = await response.json()
           setMessages(messages.concat(newMessage))
-        }, 2000)
+        }, MESSAGE_FETCH_INTERVAL)
         return () => clearTimeout(timeout)
       }
     },
@@ -79,17 +65,12 @@ function App (props) {
     <Container>
       <div>Message Count: {messages.length}</div>
       <button onClick={() => toggleNoise(!noisy)}>
-        {noisy ? 'Please stop' : 'Ok go'}
+        {noisy ? 'Silence!' : 'Ok go'}
       </button>
-      <Messages
-        users={usersById}
-        data={messages}
-        loadMore={fetchMessages}
-        loading={loading}
-      />
+      <Messages data={messages} loadMore={fetchMessages} loading={loading} />
       <Compose onMessage={handleCompose} />
     </Container>
   )
 }
 
-export default App
+export default Chat
