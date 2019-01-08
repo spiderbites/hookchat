@@ -22,14 +22,15 @@ class App extends Component {
     earliest: Date.now(),
     loading: false,
     usersById: {},
-    currentUser: {}
+    currentUser: {},
+    noisy: true
   }
 
   async componentDidMount () {
     await this.fetchUsers()
     await this.fetchCurrentUser()
     await this.fetchMessages()
-    this.interval = setInterval(this.fetchNewMessage, 5000)
+    this.interval = setInterval(this.fetchNewMessage, 2000)
   }
 
   componentWillUnmount () {
@@ -64,11 +65,18 @@ class App extends Component {
   }
 
   fetchNewMessage = async () => {
+    if (!this.state.noisy) {
+      return
+    }
     const response = await fetch(`${this.context.api}/new-message`)
     const newMessage = await response.json()
     this.setState(prevState => ({
       messages: prevState.messages.concat(newMessage)
     }))
+  }
+
+  toggleNoise = () => {
+    this.setState({ noisy: !this.state.noisy })
   }
 
   handleCompose = text => {
@@ -86,6 +94,9 @@ class App extends Component {
     return (
       <Container>
         <div>Message Count: {this.state.messages.length}</div>
+        <button onClick={this.toggleNoise}>
+          {this.state.noisy ? 'Please stop' : 'Ok go'}
+        </button>
         <Messages
           users={users}
           data={messages}

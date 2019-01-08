@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
@@ -20,11 +20,7 @@ function App (props) {
   const [loading, setLoading] = useState(false)
   const [messages, setMessages] = useState([])
   const [earliest, setEarliest] = useState(Date.now())
-
-  const messagesRef = useRef()
-  useEffect(() => {
-    messagesRef.current = messages
-  })
+  const [noisy, toggleNoise] = useState(true)
 
   const fetchUsers = async () => {
     const response = await fetch(`${api}/users`)
@@ -49,12 +45,6 @@ function App (props) {
     )
   }
 
-  const fetchNewMessage = async () => {
-    const response = await fetch(`${api}/new-message`)
-    const newMessage = await response.json()
-    setMessages(messagesRef.current.concat(newMessage))
-  }
-
   const handleCompose = text => {
     setMessages(
       messages.concat({
@@ -69,12 +59,28 @@ function App (props) {
     fetchUsers()
       .then(fetchCurrentUser)
       .then(fetchMessages)
-    setInterval(fetchNewMessage, 5000)
   }, [])
+
+  useEffect(
+    () => {
+      if (noisy) {
+        const timeout = setTimeout(async () => {
+          const response = await fetch(`${api}/new-message`)
+          const newMessage = await response.json()
+          setMessages(messages.concat(newMessage))
+        }, 2000)
+        return () => clearTimeout(timeout)
+      }
+    },
+    [noisy, messages.length]
+  )
 
   return (
     <Container>
       <div>Message Count: {messages.length}</div>
+      <button onClick={() => toggleNoise(!noisy)}>
+        {noisy ? 'Please stop' : 'Ok go'}
+      </button>
       <Messages
         users={usersById}
         data={messages}
