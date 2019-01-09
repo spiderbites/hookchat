@@ -8,8 +8,8 @@ class Compose extends Component {
     error: false
   }
 
-  onKeyPress = e => {
-    if (this.state.error) return
+  onKeyUp = e => {
+    if (this.state.error || this.state.text === '') return
     if (e.key === 'Enter') {
       this.props.onMessage(e.target.value)
       this.setState({ text: '' })
@@ -29,7 +29,7 @@ class Compose extends Component {
         placeholder='Talk talk...'
         value={text}
         onChange={this.onChange}
-        onKeyPress={this.onKeyPress}
+        onKeyUp={this.onKeyUp}
       />
     )
   }

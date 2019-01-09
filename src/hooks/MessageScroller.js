@@ -1,25 +1,11 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import throttle from 'lodash/throttle'
-import Message from '../components/Message'
 import MessageContainer from '../components/MessageContainer'
-
-import { UserContext } from './UserContext'
+import MessageList from './MessageList'
 
 const MSG_HEIGHT = 120
 
-function MessageList (props) {
-  const usersContext = useContext(UserContext)
-  return props.data.map((msg, i) => (
-    <Message
-      key={i}
-      avatar={usersContext.usersById[msg.userId].avatar}
-      username={usersContext.usersById[msg.userId].username}
-      {...msg}
-    />
-  ))
-}
-
-class Messages extends React.Component {
+class MessageScroller extends React.Component {
   listRef = React.createRef()
 
   componentDidMount () {
@@ -100,4 +86,4 @@ class Messages extends React.Component {
   }
 }
 
-export default Messages
+export default MessageScroller

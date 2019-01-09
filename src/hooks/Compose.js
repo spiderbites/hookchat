@@ -6,8 +6,8 @@ function Compose (props) {
   const [text, setText] = useState('')
   const [error, setError] = useState(false)
 
-  const onKeyPress = e => {
-    if (error) return
+  const onKeyUp = e => {
+    if (error || text === '') return
     if (e.key === 'Enter') {
       props.onMessage(e.target.value)
       setText('')
@@ -26,7 +26,7 @@ function Compose (props) {
       placeholder='Talk talk...'
       value={text}
       onChange={onChange}
-      onKeyPress={onKeyPress}
+      onKeyUp={onKeyUp}
     />
   )
 }

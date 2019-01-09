@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import Messages from './Messages'
+import MessageScroller from './MessageScroller'
 import Compose from './Compose'
 import { UserContext } from './UserContext'
 import Button from '../components/Button'
@@ -44,28 +44,28 @@ class Chat extends Component {
   }
 
   fetchNewMessage = async () => {
-    if (!this.state.noisy) {
-      return
+    if (this.state.noisy) {
+      const response = await fetch(`${API}/new-message`)
+      const newMessage = await response.json()
+      this.setState(prevState => ({
+        messages: prevState.messages.concat(newMessage)
+      }))
     }
-    const response = await fetch(`${API}/new-message`)
-    const newMessage = await response.json()
+  }
+
+  handleCompose = (text, userId) => {
+    const newMessage = {
+      time: new Date(),
+      text,
+      userId
+    }
+
     this.setState(prevState => ({
       messages: prevState.messages.concat(newMessage)
     }))
   }
 
-  handleCompose = (text, userId) => {
-    this.setState(prevState => ({
-      messages: prevState.messages.concat({
-        time: new Date(),
-        text,
-        userId
-      })
-    }))
-  }
-
   render () {
-    const { messages, loading } = this.state
     return (
       <>
         <Info>
@@ -78,10 +78,10 @@ class Chat extends Component {
           </Button>
         </Info>
         <Container>
-          <Messages
-            data={messages}
+          <MessageScroller
+            data={this.state.messages}
             loadMore={this.fetchMessages}
-            loading={loading}
+            loading={this.state.loading}
           />
           <UserContext.Consumer>
             {({ currentUser }) => (

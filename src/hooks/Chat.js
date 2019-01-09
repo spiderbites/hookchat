@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { UserContext } from './UserContext'
-import Messages from './Messages'
+import MessageScroller from './MessageScroller'
 import Compose from './Compose'
 import Button from '../components/Button'
 import Container from '../components/Container'
@@ -20,7 +20,7 @@ function Chat (props) {
     setLoading(true)
     const response = await fetch(`${API}/messages?before=${earliest}&count=10`)
     const olderMessages = await response.json()
-    setMessages(olderMessages.concat(messages))
+    setMessages(messages => olderMessages.concat(messages))
     setLoading(false)
     setEarliest(
       olderMessages.length ? Date.parse(olderMessages[0].time) : earliest
@@ -28,7 +28,7 @@ function Chat (props) {
   }
 
   const handleCompose = text => {
-    setMessages(
+    setMessages(messages =>
       messages.concat({
         time: new Date(),
         text,
@@ -44,15 +44,15 @@ function Chat (props) {
   useEffect(
     () => {
       if (noisy) {
-        const timeout = setTimeout(async () => {
+        const timer = setInterval(async () => {
           const response = await fetch(`${API}/new-message`)
           const newMessage = await response.json()
-          setMessages(messages.concat(newMessage))
+          setMessages(messages => messages.concat(newMessage))
         }, MESSAGE_FETCH_INTERVAL)
-        return () => clearTimeout(timeout)
+        return () => clearInterval(timer)
       }
     },
-    [noisy, messages.length]
+    [noisy]
   )
 
   return (
@@ -64,7 +64,11 @@ function Chat (props) {
         </Button>
       </Info>
       <Container>
-        <Messages data={messages} loadMore={fetchMessages} loading={loading} />
+        <MessageScroller
+          data={messages}
+          loadMore={fetchMessages}
+          loading={loading}
+        />
         <Compose onMessage={handleCompose} />
       </Container>
     </>
