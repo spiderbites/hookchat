@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import throttle from 'lodash/throttle'
 import MessageContainer from '../components/MessageContainer'
-import MessageList from './MessageList'
+
+const MessageList = lazy(() => import('./MessageList'))
 
 const MSG_HEIGHT = 120
 
@@ -80,7 +81,9 @@ class MessageScroller extends React.Component {
     return (
       <MessageContainer ref={this.listRef} onScroll={this.handleScroll}>
         {loading && <div>Loading...</div>}
-        <MessageList data={data} />
+        <Suspense fallback={<div>Loading Message component...</div>}>
+          <MessageList data={data} />
+        </Suspense>
       </MessageContainer>
     )
   }
