@@ -1,41 +1,52 @@
-import React, { Component } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import keyBy from 'lodash/keyBy'
 const API = process.env.REACT_APP_API
 
 export const UserContext = React.createContext()
 
-export class UserProvider extends Component {
-  state = {
-    dataReady: false,
-    usersById: {},
-    currentUser: {}
+function reducer (state, action) {
+  switch (action.type) {
+    case 'data_fetched':
+      return {
+        usersById: keyBy(action.payload.users, 'id'),
+        currentUser: action.payload.currentUser,
+        dataReady: true
+      }
+    default:
+      return state
   }
+}
 
-  async componentDidMount () {
-    await Promise.all([this.fetchUsers(), this.fetchCurrentUser()])
-    this.setState({ dataReady: true })
-  }
+const initialState = {
+  usersById: {},
+  currentUser: {},
+  dataReady: false
+}
 
-  fetchUsers = async () => {
+export function UserProvider (props) {
+  const [state, dispatch] = useReducer(reducer, initialState)
+
+  const fetchUsers = async () => {
     const response = await fetch(`${API}/users`)
-    const users = await response.json()
-    this.setState({ usersById: keyBy(users, 'id') })
+    return response.json()
   }
 
-  fetchCurrentUser = async () => {
+  const fetchCurrentUser = async () => {
     const response = await fetch(`${API}/me`)
-    const currentUser = await response.json()
-    this.setState({ currentUser })
+    return response.json()
   }
 
-  render () {
-    if (!this.state.dataReady) {
-      return 'loading users...'
-    }
-    return (
-      <UserContext.Provider value={this.state}>
-        {this.props.children}
-      </UserContext.Provider>
-    )
+  useEffect(() => {
+    Promise.all([fetchUsers(), fetchCurrentUser()]).then(data => {
+      const [users, currentUser] = data
+      dispatch({ type: 'data_fetched', payload: { users, currentUser } })
+    })
+  }, [])
+
+  if (!state.dataReady) {
+    return 'Loading users...'
   }
+  return (
+    <UserContext.Provider value={state}>{props.children}</UserContext.Provider>
+  )
 }

@@ -12,25 +12,30 @@ export class UserProvider extends Component {
   }
 
   async componentDidMount () {
-    await Promise.all([this.fetchUsers(), this.fetchCurrentUser()])
-    this.setState({ dataReady: true })
+    const [users, currentUser] = await Promise.all([
+      this.fetchUsers(),
+      this.fetchCurrentUser()
+    ])
+    this.setState({
+      dataReady: true,
+      usersById: keyBy(users, 'id'),
+      currentUser
+    })
   }
 
   fetchUsers = async () => {
     const response = await fetch(`${API}/users`)
-    const users = await response.json()
-    this.setState({ usersById: keyBy(users, 'id') })
+    return response.json()
   }
 
   fetchCurrentUser = async () => {
     const response = await fetch(`${API}/me`)
-    const currentUser = await response.json()
-    this.setState({ currentUser })
+    return response.json()
   }
 
   render () {
     if (!this.state.dataReady) {
-      return 'loading users...'
+      return 'Loading users...'
     }
     return (
       <UserContext.Provider value={this.state}>
