@@ -1,19 +1,11 @@
 import React, { useContext } from 'react'
-import styled from 'styled-components'
 import throttle from 'lodash/throttle'
 import Message from '../components/Message'
+import MessageContainer from '../components/MessageContainer'
 
 import { UserContext } from './UserContext'
 
 const MSG_HEIGHT = 120
-
-const MessageContainer = styled.div`
-  background-color: palegoldenrod;
-  overflow-y: auto;
-  margin: 0px auto;
-  height: 600px;
-  padding: 20px;
-`
 
 function MessageList (props) {
   const usersContext = useContext(UserContext)

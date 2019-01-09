@@ -1,19 +1,13 @@
 import React, { useEffect, useState, useContext } from 'react'
-import styled from 'styled-components'
+import { UserContext } from './UserContext'
 import Messages from './Messages'
 import Compose from './Compose'
-import { UserContext } from './UserContext'
+import Button from '../components/Button'
+import Container from '../components/Container'
+import Info from '../components/Info'
 
 const API = process.env.REACT_APP_API
 const MESSAGE_FETCH_INTERVAL = 2000
-
-const Container = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-`
 
 function Chat (props) {
   const usersContext = useContext(UserContext)
@@ -62,14 +56,18 @@ function Chat (props) {
   )
 
   return (
-    <Container>
-      <div>Message Count: {messages.length}</div>
-      <button onClick={() => toggleNoise(!noisy)}>
-        {noisy ? 'Silence!' : 'Ok go'}
-      </button>
-      <Messages data={messages} loadMore={fetchMessages} loading={loading} />
-      <Compose onMessage={handleCompose} />
-    </Container>
+    <>
+      <Info>
+        <span>Message Count: {messages.length}</span>
+        <Button style={{ float: 'right' }} onClick={() => toggleNoise(!noisy)}>
+          {noisy ? 'Silence!' : 'Ok go'}
+        </Button>
+      </Info>
+      <Container>
+        <Messages data={messages} loadMore={fetchMessages} loading={loading} />
+        <Compose onMessage={handleCompose} />
+      </Container>
+    </>
   )
 }
 

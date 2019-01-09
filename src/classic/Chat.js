@@ -1,19 +1,13 @@
 import React, { Component } from 'react'
-import styled from 'styled-components'
 import Messages from './Messages'
 import Compose from './Compose'
 import { UserContext } from './UserContext'
+import Button from '../components/Button'
+import Container from '../components/Container'
+import Info from '../components/Info'
 
 const API = process.env.REACT_APP_API
 const MESSAGE_FETCH_INTERVAL = 2000
-
-const Container = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-`
 
 class App extends Component {
   interval = null
@@ -60,10 +54,6 @@ class App extends Component {
     }))
   }
 
-  toggleNoise = () => {
-    this.setState({ noisy: !this.state.noisy })
-  }
-
   handleCompose = (text, userId) => {
     this.setState(prevState => ({
       messages: prevState.messages.concat({
@@ -77,24 +67,31 @@ class App extends Component {
   render () {
     const { messages, loading } = this.state
     return (
-      <Container>
-        <div>Message Count: {this.state.messages.length}</div>
-        <button onClick={this.toggleNoise}>
-          {this.state.noisy ? 'Silence!' : 'Ok go'}
-        </button>
-        <Messages
-          data={messages}
-          loadMore={this.fetchMessages}
-          loading={loading}
-        />
-        <UserContext.Consumer>
-          {({ currentUser }) => (
-            <Compose
-              onMessage={text => this.handleCompose(text, currentUser.id)}
-            />
-          )}
-        </UserContext.Consumer>
-      </Container>
+      <>
+        <Info>
+          <span>Message Count: {this.state.messages.length}</span>
+          <Button
+            style={{ float: 'right' }}
+            onClick={() => this.setState({ noisy: !this.state.noisy })}
+          >
+            {this.state.noisy ? 'Silence!' : 'Ok go'}
+          </Button>
+        </Info>
+        <Container>
+          <Messages
+            data={messages}
+            loadMore={this.fetchMessages}
+            loading={loading}
+          />
+          <UserContext.Consumer>
+            {({ currentUser }) => (
+              <Compose
+                onMessage={text => this.handleCompose(text, currentUser.id)}
+              />
+            )}
+          </UserContext.Consumer>
+        </Container>
+      </>
     )
   }
 }

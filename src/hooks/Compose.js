@@ -3,11 +3,12 @@ import styled from 'styled-components'
 
 const StyledInput = styled.input`
   width: 100%;
-  height: 25px;
-  border-radius: 4px;
-  border: 2px solid gray;
+  height: 35px;
+  border-radius: 0px;
+  border: none;
   font-size: 16px;
   box-sizing: border-box;
+  padding: 5px;
 `
 
 function Compose (props) {
@@ -21,6 +22,7 @@ function Compose (props) {
 
   return (
     <StyledInput
+      placeholder='Talk talk...'
       value={text}
       onChange={e => setText(e.target.value)}
       onKeyPress={onKeyPress}
