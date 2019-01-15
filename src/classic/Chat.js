@@ -28,6 +28,17 @@ class Chat extends Component {
     clearInterval(this.interval)
   }
 
+  componentDidUpdate (prevProps) {
+    // If the noisy parameter has changed, clear the interval
+    if (prevProps.noisy !== this.props.noisy) {
+      clearInterval(this.interval)
+    }
+    // If going from not noisy to noisy, set the interval
+    if (!prevProps.noisy && this.props.noisy) {
+      this.interval = setInterval(this.fetchNewMessage, MESSAGE_FETCH_INTERVAL)
+    }
+  }
+
   fetchMessages = async () => {
     this.setState({ loading: true })
     const response = await fetch(
