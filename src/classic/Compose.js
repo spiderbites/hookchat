@@ -8,6 +8,12 @@ class Compose extends Component {
     error: false
   }
 
+  inputEl = React.createRef()
+
+  componentDidMount () {
+    this.inputEl.current.focus()
+  }
+
   onKeyUp = e => {
     if (this.state.error || this.state.text === '') return
     if (e.key === 'Enter') {
@@ -25,6 +31,7 @@ class Compose extends Component {
     const { error, text } = this.state
     return (
       <Input
+        ref={this.inputEl}
         error={error}
         placeholder='Talk talk...'
         value={text}
