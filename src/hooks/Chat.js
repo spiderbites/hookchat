@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { UserContext } from './UserContext'
 import MessageScroller from './MessageScroller'
-import Compose from './ComposeCustomHook'
+import Compose from './Compose'
 import Button from '../components/Button'
 import Container from '../components/Container'
 import Info from '../components/Info'

@@ -1,4 +1,19 @@
-# Demoing React 16-17 features with a chat app
+# Hookchat
+
+Some demo code to showcase converting an app to using React hooks.
+
+## Usage
+
+First get this API up and running: [https://github.com/spiderbites/hookchat-api](https://github.com/spiderbites/hookchat-api)
+
+Then...
+
+```bash
+yarn install
+yarn start
+```
+
+In `./src/index.js`, swap the import statement to move between the `classic` version and the `hooks` version.
 
 ## React.memo
 

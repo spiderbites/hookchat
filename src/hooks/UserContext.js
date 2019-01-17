@@ -6,11 +6,24 @@ export const UserContext = React.createContext()
 
 function reducer (state, action) {
   switch (action.type) {
-    case 'data_fetched':
+    case 'request':
+      return {
+        loading: true,
+        ...state
+      }
+    case 'success':
       return {
         usersById: keyBy(action.payload.users, 'id'),
         currentUser: action.payload.currentUser,
-        dataReady: true
+        dataReady: true,
+        loading: false,
+        error: null
+      }
+    case 'failure':
+      return {
+        dataReady: false,
+        loading: false,
+        error: action.error
       }
     default:
       return state
@@ -18,12 +31,14 @@ function reducer (state, action) {
 }
 
 const initialState = {
+  loading: false,
+  dataReady: false,
+  error: null,
   usersById: {},
-  currentUser: {},
-  dataReady: false
+  currentUser: {}
 }
 
-export function UserProvider (props) {
+export const UserProvider = props => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const fetchUsers = async () => {
@@ -36,16 +51,31 @@ export function UserProvider (props) {
     return response.json()
   }
 
+  const fetchData = async () => {
+    dispatch({ type: 'request' })
+    try {
+      const [users, currentUser] = await Promise.all([
+        fetchUsers(),
+        fetchCurrentUser()
+      ])
+      dispatch({ type: 'success', payload: { users, currentUser } })
+    } catch (error) {
+      dispatch({ type: 'failure', error })
+    }
+  }
+
   useEffect(() => {
-    Promise.all([fetchUsers(), fetchCurrentUser()]).then(data => {
-      const [users, currentUser] = data
-      dispatch({ type: 'data_fetched', payload: { users, currentUser } })
-    })
+    fetchData()
   }, [])
+
+  if (state.error) {
+    return state.error.message
+  }
 
   if (!state.dataReady) {
     return 'Loading users...'
   }
+
   return (
     <UserContext.Provider value={state}>{props.children}</UserContext.Provider>
   )
